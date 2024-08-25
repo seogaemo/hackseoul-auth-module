@@ -2,9 +2,12 @@ import {
   AuthServiceController,
   AuthServiceControllerMethods,
   SignIn,
-  SignInResponse,
+  Token,
 } from "@shared/generated/auth.proto";
-import { SuccessResponse } from "@shared/generated/messages/messages.proto";
+import {
+  SuccessResponse,
+  Uid,
+} from "@shared/generated/messages/messages.proto";
 import {
   CreateUserRequest,
   UserServiceClient,
@@ -26,15 +29,18 @@ export class AuthController implements AuthServiceController, OnModuleInit {
   private userService!: UserServiceClient;
 
   constructor(private readonly authService: AuthService) {}
+  validateToken(request: Token): Promise<Uid> | Observable<Uid> | Uid {
+    return this.authService.validateToken(request.token).then((uid) => ({
+      uid,
+    }));
+  }
 
   onModuleInit() {
     this.userService =
       this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
   }
 
-  signIn(
-    request: SignIn,
-  ): SignInResponse | Promise<SignInResponse> | Observable<SignInResponse> {
+  signIn(request: SignIn): Token | Promise<Token> | Observable<Token> {
     return firstValueFrom(this.userService.getUserById({ id: request.id }))
       .then((user) =>
         this.authService.signIn(user).then((token) => ({ token })),
