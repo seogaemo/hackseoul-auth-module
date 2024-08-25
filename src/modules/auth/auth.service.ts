@@ -20,4 +20,12 @@ export class AuthService {
       },
     );
   }
+
+  async validateToken(token: string): Promise<string> {
+    const payload: { uid: string } = this.jwtService.verify(token, {
+      secret: this.configService.get<string>("JWT_SECRET"),
+    });
+
+    return payload.uid;
+  }
 }
